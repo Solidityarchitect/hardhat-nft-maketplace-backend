@@ -1,4 +1,5 @@
 const { ethers } = require("hardhat")
+const { moveBlocks } = require("../utils/move-blocks")
 
 const PRICE = ethers.utils.parseEther("0.1")
 
@@ -10,6 +11,7 @@ async function mintAndList() {
     const mintTxReceipt = await mintTx.wait(1)
     const tokenId = mintTxReceipt.events[0].args.tokenId
     console.log("Approving NFT...✨")
+    console.log(tokenId.toString())
 
     const approvalTx = await basicNft.approve(nftMarketplace.address, tokenId)
     await approvalTx.wait(1)
@@ -17,6 +19,10 @@ async function mintAndList() {
     const tx = await nftMarketplace.listItem(basicNft.address, tokenId, PRICE)
     await tx.wait(1)
     console.log("Listed!✨")
+    if (network.config.chainId == 31337) {
+        // Moralis has a hard time if you move more than 1 at once!
+        await moveBlocks(1, (sleepAmount = 1000))
+    }
 }
 
 mintAndList()
